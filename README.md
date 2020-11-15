@@ -4,12 +4,12 @@ Agendabot is a discord bot created to help university students better schedule t
 
 ## Command List
 **For Deadlines** \
-*`newdeadline "course name, deadline name, due date"` : adds a new deadline to the deadlines database based on the parameters shown\
+*`newdeadline course name, deadline name, due date` : adds a new deadline to the deadlines database based on the parameters shown (commas are necessary)\
 *`removedeadline index` : deletes a deadline from the deadlines database through an index \
 *`cleardeadlines` : clears all deadlines from the deadline database. Should be used very cautiously. \
 *`listdeadlines` : list the deadlines with their indices (index is used for deletion) \
 **For Events** \
-*`newevent "event name, event description, start date"` : adds a new event to the events database based on the parameters shown\
+*`newevent event name, event description, start date` : adds a new event to the events database based on the parameters shown (commas are necessary)\
 *`removeevents` : deletes a event from the events database through an index \
 *`clearevents` : clears all events from the events database. Should be used very cautiously. \
 *`listevents` : list all upcoming with their indices (index is used for deletion) \
