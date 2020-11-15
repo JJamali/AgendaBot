@@ -153,7 +153,7 @@ class Deadlines(commands.Cog):
         message.append("**{0} events** :rocket: \n".format(guild))
         message.append("{}: {} - {}".format())
 
-    @tasks.loop(seconds=4)
+    @tasks.loop(hours=24)
     async def summarize(self):
         """Print upcoming events each day"""
         self.announce_channels = [discord.utils.get(guild.channels, name='announcements')
@@ -178,4 +178,4 @@ class Deadlines(commands.Cog):
         seconds_to_midnight = (future - t).total_seconds()
 
         print(f'waiting {seconds_to_midnight} seconds until starting summary loop')
-        # await asyncio.sleep(seconds_to_midnight)
+        await asyncio.sleep(seconds_to_midnight)
