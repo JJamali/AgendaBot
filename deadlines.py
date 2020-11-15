@@ -172,7 +172,7 @@ class Deadlines(commands.Cog):
 
         # calculate seconds to midnight
         t = datetime.datetime.today()
-        future = datetime.datetime(t.year, t.month, t.day, 8, 8)
+        future = datetime.datetime(t.year, t.month, t.day, 8, 0)
         if future <= t:
             future += datetime.timedelta(days=1)
         seconds_to_midnight = (future - t).total_seconds()
