@@ -1,11 +1,11 @@
 # AgendaBot
----
+
 Agendabot is a discord bot created to help university students better \
  schedule their academic deadlines while also helping with planning casual \ 
  events to relieve stress and socialize during the online terms. \
  This bot was created by Max Ning, Lukas Boelling and Jordan Jamali \
  during the 2020 online Oxford Hackathon.
----
+
 ## Command List
 **For Deadlines** \
 *`newdeadline "course name, deadline name, due date"` : adds a new deadline to the deadlines database based on the parameters shown\
