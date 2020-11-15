@@ -46,7 +46,7 @@ class Deadlines(commands.Cog):
         self.summarize.start()
 
     @has_permissions(administrator=True)
-    @commands.command(name='new')
+    @commands.command(name='newdeadline')
     async def new_deadline(self, ctx, text):
         department, course_num, name, due_date = parse_arguments(text)
 
@@ -58,7 +58,7 @@ class Deadlines(commands.Cog):
         print('done')
 
     @has_permissions(administrator=True)
-    @commands.command(name='remove')
+    @commands.command(name='removedeadline')
     async def remove_deadline(self, ctx, idx: int):
         if idx < 0:
             await ctx.send("Your index is out of range, please try again")
@@ -75,7 +75,7 @@ class Deadlines(commands.Cog):
                                                                deadline["name"]))
         print('delete done')
 
-    @commands.command(name='clear')
+    @commands.command(name='cleardeadline')
     @has_permissions(administrator=True)
     async def clear_all_deadlines(self, ctx):
         self.clear_deadline(ctx.guild.id)

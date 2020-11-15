@@ -17,10 +17,11 @@ def init_database(user, password):
                    "    name VARCHAR(20),"
                    "    due_date DATETIME"
                    ")")
-    
+
     cursor.execute("CREATE TABLE IF NOT EXISTS events ("
+                   "    guild_id BIGINT, "
                    "    name VARCHAR(30),"
-                   "    Description VARCHAR(60),"
+                   "    description VARCHAR(100),"
                    "    start_date DATETIME"
                    ")")
     db.close()
