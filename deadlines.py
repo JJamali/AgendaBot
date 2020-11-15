@@ -9,9 +9,8 @@ import datetime
 
 
 def format_deadline(deadline):
-    return f"{deadline['department']}-{deadline['course_num']} {deadline['name']}\t\t" \
-           f"due" \
-           f" {deadline['due_date'].strftime('%b %d %I:%M %p')}"
+    return f"`{deadline['department']}{deadline['course_num']}` {deadline['name']} | " \
+           f"`{deadline['due_date'].strftime('%b %d %I:%M %p')}`"
 
 
 def parse_course_code(course_code):
@@ -71,7 +70,9 @@ class Deadlines(commands.Cog):
             return
 
         self.delete_deadline(**deadline)
-        await ctx.send("{} {} {} removed from deadlines :triumph:".format(deadline["department"], deadline["course_num"], deadline["name"]))
+        await ctx.send(
+            "{} {} {} removed from deadlines :triumph:".format(deadline["department"], deadline["course_num"],
+                                                               deadline["name"]))
         print('delete done')
 
     @commands.command(name='clear')
@@ -109,44 +110,42 @@ class Deadlines(commands.Cog):
     @commands.command(name='list')
     async def list_all_deadlines(self, ctx):
         deadlines = self.get_all_deadlines(ctx.message.guild.id)
-        message = []
-        for idx, deadline in enumerate(deadlines):
-            message.append(f"{idx} - {format_deadline(deadline)}")
 
-        if message:
-            await ctx.send('\n'.join(message))
+        embed = discord.Embed(title='Upcoming Due Dates', color=0xdc1e1e)
+        if not deadlines:
+            embed.description = "There are no existing due dates :smile:"
         else:
-            await ctx.send("There are no Deadlines")
+            lines = []
+            for idx, deadline in enumerate(deadlines):
+                lines.append(f"`{idx}.` {format_deadline(deadline)}")
+            embed.description = '\n'.join(lines)
+        await ctx.send(embed=embed)
 
     def get_all_deadlines(self, guild_id):
         """Returns all upcoming deadlines"""
-        self.cursor.execute("SELECT * FROM `deadlines` WHERE " 
+        self.cursor.execute("SELECT * FROM `deadlines` WHERE "
                             "`guild_id` = %s AND `due_date` > %s "
                             "ORDER BY `due_date` ASC",
                             (guild_id, datetime.datetime.now()))
         return self.cursor.fetchall()
 
     async def send_calendar(self, ctx, guild, deadlines):
-        message = []
+        embed = discord.Embed(title=f':calendar_spiral: {guild}\'s upcoming due dates:', color=0xdc1e1e)
+        fields = []
         current_day = None
 
-        message.append("**{0} important dates** :calendar_spiral:".format(guild))
         for idx, deadline in enumerate(deadlines):
             new_day = deadline["due_date"]
             if current_day != new_day:
-                message.append(f'\n__{get_weekday(deadline["due_date"])}__')
+                fields.append({"name": get_weekday(deadline["due_date"]), "value": []})
                 current_day = new_day
 
-            """
-            generalMsg = "> {}{} — {:<10}\t\t\t ".format(deadline["department"], deadline["course_num"], deadline["name"], deadline["due_date"])
-            due = "    *Due:{}*".format(deadline["due_date"])
+            desc = format_deadline(deadline)
+            fields[-1]["value"].append(desc)
 
-            message.append(generalMsg)
-            message.append((30 - len(generalMsg)) * " " + due)
-            """
-            generalMsg = format_deadline(deadline)
-            message.append(generalMsg)
-        await ctx.send('\n'.join(message))
+        for f in fields:
+            embed.add_field(name=f["name"], value='\n'.join(f["value"]), inline=False)
+        await ctx.send(embed=embed)
 
     async def send_events(self, ctx, deadlines):
         guild = ctx.message.guild.name
@@ -154,16 +153,17 @@ class Deadlines(commands.Cog):
         message.append("**{0} events** :rocket: \n".format(guild))
         message.append("{}: {} - {}".format())
 
-    @tasks.loop(hours=24)
+    @tasks.loop(seconds=4)
     async def summarize(self):
         """Print upcoming events each day"""
         self.announce_channels = [discord.utils.get(guild.channels, name='announcements')
                                   for guild in self.bot.guilds]
 
         for channel in self.announce_channels:
-            guild_id = channel.guild.id
-            deadlines = self.get_all_deadlines(guild_id)
-            await self.send_calendar(channel, channel.guild, deadlines)
+            if channel is not None:
+                guild_id = channel.guild.id
+                deadlines = self.get_all_deadlines(guild_id)
+                await self.send_calendar(channel, channel.guild, deadlines)
 
     @summarize.before_loop
     async def before_summarize(self):
@@ -172,10 +172,10 @@ class Deadlines(commands.Cog):
 
         # calculate seconds to midnight
         t = datetime.datetime.today()
-        future = datetime.datetime(t.year, t.month, t.day, 8, 0)
+        future = datetime.datetime(t.year, t.month, t.day, 7, 0)
         if future <= t:
             future += datetime.timedelta(days=1)
         seconds_to_midnight = (future - t).total_seconds()
 
         print(f'waiting {seconds_to_midnight} seconds until starting summary loop')
-        await asyncio.sleep(seconds_to_midnight)
+        # await asyncio.sleep(seconds_to_midnight)
