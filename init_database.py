@@ -17,6 +17,12 @@ def init_database(user, password):
                    "    name VARCHAR(20),"
                    "    due_date DATETIME"
                    ")")
+    
+    cursor.execute("CREATE TABLE IF NOT EXISTS events ("
+                   "    name VARCHAR(30),"
+                   "    Description VARCHAR(60),"
+                   "    start_date DATETIME"
+                   ")")
     db.close()
 
 
