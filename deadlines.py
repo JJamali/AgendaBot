@@ -3,6 +3,7 @@ import asyncio
 
 import discord
 from discord.ext import commands, tasks
+from discord.ext.commands import has_permissions
 import dateutil.parser
 import datetime
 
@@ -45,6 +46,7 @@ class Deadlines(commands.Cog):
         self.announce_channels = []
         self.summarize.start()
 
+    @has_permissions(administrator=True)
     @commands.command(name='new')
     async def new_deadline(self, ctx, text):
         department, course_num, name, due_date = parse_arguments(text)
@@ -56,6 +58,7 @@ class Deadlines(commands.Cog):
 
         print('done')
 
+    @has_permissions(administrator=True)
     @commands.command(name='remove')
     async def remove_deadline(self, ctx, idx: int):
         if idx < 0:
@@ -72,6 +75,7 @@ class Deadlines(commands.Cog):
         print('delete done')
 
     @commands.command(name='clear')
+    @has_permissions(administrator=True)
     async def clear_all_deadlines(self, ctx):
         self.clear_deadline()
         await ctx.send("Removed All Deadlines")
