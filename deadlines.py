@@ -1,5 +1,8 @@
 import re
-from discord.ext import commands
+import asyncio
+
+import discord
+from discord.ext import commands, tasks
 import dateutil.parser
 import datetime
 
@@ -34,9 +37,13 @@ def get_weekday(due_date):
 
 
 class Deadlines(commands.Cog):
-    def __init__(self, db, cursor):
+    def __init__(self, bot, db, cursor):
+        self.bot = bot
         self.db = db
         self.cursor = cursor
+
+        self.announce_channels = []
+        self.summarize.start()
 
     @commands.command()
     async def hello(self, ctx):
@@ -82,9 +89,9 @@ class Deadlines(commands.Cog):
 
     def get_before_datetime(self, guild_id, date):
         self.cursor.execute("SELECT * FROM `deadlines` WHERE "
-                            "`guild_id` = %s AND `due_date` < %s "
+                            "`guild_id` = %s AND `due_date` < %s AND $s < `due_date` "
                             "ORDER BY `due_date` ASC",
-                            (guild_id, date))
+                            (guild_id, date, datetime.datetime.now()))
         result = self.cursor.fetchall()
         for r in result:
             print(r)
@@ -103,10 +110,11 @@ class Deadlines(commands.Cog):
             await ctx.send("There are no Deadlines")
 
     def get_all_deadlines(self, guild_id):
+        """Returns all upcoming deadlines"""
         self.cursor.execute("SELECT * FROM `deadlines` WHERE " 
-                            "`guild_id` = %s "
+                            "`guild_id` = %s AND `due_date` > %s "
                             "ORDER BY `due_date` ASC",
-                            (guild_id,))
+                            (guild_id, datetime.datetime.now()))
         return self.cursor.fetchall()
 
     def delete_deadline(self, guild_id, department, course_num, name, due_date):
@@ -127,8 +135,7 @@ class Deadlines(commands.Cog):
         deadlines = [{"department": "dep", "course_num": i, "name": i*i, "due_date": date} for i, date in enumerate(dates)]
         await self.send_calendar(ctx, deadlines)
 
-    async def send_calendar(self, ctx, deadlines):
-        guild = ctx.message.guild.name
+    async def send_calendar(self, ctx, guild, deadlines):
         message = []
         current_day = None
 
@@ -150,9 +157,33 @@ class Deadlines(commands.Cog):
             message.append(generalMsg)
         await ctx.send('\n'.join(message))
 
-
     async def send_events(self, ctx, deadlines):
         guild = ctx.message.guild.name
         message = []
         message.append("**{0} events** :rocket: \n".format(guild))
         message.append("{}: {} - {}".format())
+
+    @tasks.loop(hours=24)
+    async def summarize(self):
+        self.announce_channels = [discord.utils.get(guild.channels, name='announcements')
+                                  for guild in self.bot.guilds]
+
+        for channel in self.announce_channels:
+            guild_id = channel.guild.id
+            deadlines = self.get_all_deadlines(guild_id)
+            await self.send_calendar(channel, channel.guild, deadlines)
+
+    @summarize.before_loop
+    async def before_summarize(self):
+        """Wait until midnight to begin summarize loop"""
+        await self.bot.wait_until_ready()
+
+        # calculate seconds to midnight
+        t = datetime.datetime.today()
+        future = datetime.datetime(t.year, t.month, t.day, 8, 8)
+        if future <= t:
+            future += datetime.timedelta(days=1)
+        seconds_to_midnight = (future - t).total_seconds()
+
+        print(f'waiting {seconds_to_midnight} seconds until starting summary loop')
+        await asyncio.sleep(seconds_to_midnight)
