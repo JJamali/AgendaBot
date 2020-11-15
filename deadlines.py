@@ -77,7 +77,7 @@ class Deadlines(commands.Cog):
     @commands.command(name='clear')
     @has_permissions(administrator=True)
     async def clear_all_deadlines(self, ctx):
-        self.clear_deadline()
+        self.clear_deadline(ctx.guild.id)
         await ctx.send("Removed All Deadlines")
 
     def insert_deadline(self, guild_id, department, course_num, name, due_date):
@@ -94,8 +94,8 @@ class Deadlines(commands.Cog):
 
         self.db.commit()
 
-    def clear_deadline(self):
-        self.cursor.execute("DELETE FROM deadlines")
+    def clear_deadline(self, guild_id):
+        self.cursor.execute("DELETE FROM deadlines WHERE `guild_id` = %s", (guild_id,))
         self.db.commit()
 
     def get_before_datetime(self, guild_id, date):
