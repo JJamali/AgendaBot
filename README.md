@@ -1,4 +1,4 @@
-#**AgendaBot**
+# AgendaBot
 ---
 Agendabot is a discord bot created to help university students better \
  schedule their academic deadlines while also helping with planning casual \ 
