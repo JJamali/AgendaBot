@@ -31,7 +31,7 @@ class Events(commands.Cog):
 
     @has_permissions(administrator=True)
     @commands.command(name='newevent')
-    async def new_event(self, ctx, text):
+    async def new_event(self, ctx, *, text):
         name, description, start_date = parse_arguments(text)
 
         guild_id = ctx.message.guild.id

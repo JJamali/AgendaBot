@@ -47,7 +47,7 @@ class Deadlines(commands.Cog):
 
     @has_permissions(administrator=True)
     @commands.command(name='newdeadline')
-    async def new_deadline(self, ctx, text):
+    async def new_deadline(self, ctx, *, text):
         department, course_num, name, due_date = parse_arguments(text)
 
         guild_id = ctx.message.guild.id
