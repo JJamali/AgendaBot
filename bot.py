@@ -13,7 +13,7 @@ class CalendarBot(commands.Bot):
                                   password=os.getenv('db_password'),
                                   host='localhost',
                                   database='deadlinedb')
-        self.cursor = self.db.cursor()
+        self.cursor = self.db.cursor(MySQLdb.cursors.DictCursor)
         self.add_cog(Deadlines(self.db, self.cursor))
 
     async def on_ready(self):
