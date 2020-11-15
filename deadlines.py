@@ -75,7 +75,7 @@ class Deadlines(commands.Cog):
                                                                deadline["name"]))
         print('delete done')
 
-    @commands.command(name='cleardeadline')
+    @commands.command(name='cleardeadlines')
     @has_permissions(administrator=True)
     async def clear_all_deadlines(self, ctx):
         self.clear_deadline(ctx.guild.id)
@@ -107,7 +107,7 @@ class Deadlines(commands.Cog):
         result = self.cursor.fetchall()
         return result
 
-    @commands.command(name='list')
+    @commands.command(name='listdeadlines')
     async def list_all_deadlines(self, ctx):
         deadlines = self.get_all_deadlines(ctx.message.guild.id)
 
