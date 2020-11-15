@@ -49,6 +49,8 @@ class Deadlines(commands.Cog):
         guild_id = ctx.message.guild.id
 
         self.insert_deadline(guild_id, department, course_num, name, due_date)
+        await ctx.send("{} {} {} added to deadlines :sunglasses:".format(department, course_num, name))
+
         print('done')
 
     @commands.command(name='remove')
@@ -59,7 +61,13 @@ class Deadlines(commands.Cog):
             pass
 
         self.delete_deadline(**deadline)
+        await ctx.send("{} {} {} removed from deadlines :triumph:".format(deadline["department"], deadline["course_num"], deadline["name"]))
         print('delete done')
+
+    @commands.command(name='clear')
+    async def clear_all_deadlines(self, ctx):
+        self.clear_deadline()
+        await ctx.send("Removed All Deadlines")
 
     def insert_deadline(self, guild_id, department, course_num, name, due_date):
         self.cursor.execute("INSERT INTO deadlines VALUES("
@@ -88,7 +96,11 @@ class Deadlines(commands.Cog):
         message = []
         for idx, deadline in enumerate(deadlines):
             message.append(f"{idx} - {format_deadline(deadline)}")
-        await ctx.send('\n'.join(message))
+
+        if message:
+            await ctx.send('\n'.join(message))
+        else:
+            await ctx.send("There are no Deadlines")
 
     def get_all_deadlines(self, guild_id):
         self.cursor.execute("SELECT * FROM `deadlines` WHERE " 
@@ -103,6 +115,10 @@ class Deadlines(commands.Cog):
                             "LIMIT 1",
                             (guild_id, department, course_num, name, due_date))
 
+        self.db.commit()
+
+    def clear_deadline(self):
+        self.cursor.execute("DELETE FROM deadlines")
         self.db.commit()
 
     @commands.command(name='deadlines')
