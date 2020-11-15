@@ -5,7 +5,7 @@ import datetime
 
 
 def format_deadline(deadline):
-    return f"{deadline['department']}-{deadline['course_num']} {deadline['name']} " \
+    return f"{deadline['department']}-{deadline['course_num']} {deadline['name']}\t\t" \
            f"due" \
            f" {deadline['due_date'].strftime('%b %d %I:%M %p')}"
 
@@ -105,7 +105,7 @@ class Deadlines(commands.Cog):
 
         self.db.commit()
 
-    @commands.command(name='test')
+    @commands.command(name='deadlines')
     async def test(self, ctx):
         dates = [datetime.datetime(2020, 11, 16), datetime.datetime(2020, 11, 17), datetime.datetime(2020,11,17)]
         deadlines = [{"department": "dep", "course_num": i, "name": i*i, "due_date": date} for i, date in enumerate(dates)]
@@ -116,18 +116,27 @@ class Deadlines(commands.Cog):
         message = []
         current_day = None
 
-        message.append("**{0} important dates** :calendar_spiral:\n".format(guild))
+        message.append("**{0} important dates** :calendar_spiral:".format(guild))
         for idx, deadline in enumerate(deadlines):
             new_day = deadline["due_date"]
             if current_day != new_day:
-                message.append('__')
-                message.append(get_weekday(deadline["due_date"]))
-                message.append('__')
+                message.append(f'\n__{get_weekday(deadline["due_date"])}__')
                 current_day = new_day
 
+            """
             generalMsg = "> {}{} — {:<10}\t\t\t ".format(deadline["department"], deadline["course_num"], deadline["name"], deadline["due_date"])
             due = "    *Due:{}*".format(deadline["due_date"])
 
             message.append(generalMsg)
             message.append((30 - len(generalMsg)) * " " + due)
+            """
+            generalMsg = format_deadline(deadline)
+            message.append(generalMsg)
         await ctx.send('\n'.join(message))
+
+
+    async def send_events(self, ctx, deadlines):
+        guild = ctx.message.guild.name
+        message = []
+        message.append("**{0} events** :rocket: \n".format(guild))
+        message.append("{}: {} - {}".format())
