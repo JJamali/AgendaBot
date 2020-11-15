@@ -43,6 +43,9 @@ class Events(commands.Cog):
             "{} {} added to events :sunglasses:".format(name, start_date))
 
         print('done')
+    @new_event.error
+    async def new_event_error(self, ctx, error):
+        await ctx.send("Error creating event")
 
     @has_permissions(administrator=True)
     @commands.command(name='removeevent')
@@ -61,6 +64,9 @@ class Events(commands.Cog):
             "{} {} removed from events :triumph:".format(event["name"],
                                                          event["start_date"]))
         print('delete done')
+    @remove_event.error
+    async def remove_event_error(self, ctx, error):
+        await ctx.send("Error removing event")
 
     @commands.command(name='clearevents')
     @has_permissions(administrator=True)
