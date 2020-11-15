@@ -56,6 +56,9 @@ class Deadlines(commands.Cog):
         await ctx.send("{} {} {} added to deadlines :sunglasses:".format(department, course_num, name))
 
         print('done')
+    @new_deadline.error
+    async def new_deadline_error(self, ctx, error):
+        await ctx.send("Error creating deadline")
 
     @has_permissions(administrator=True)
     @commands.command(name='removedeadline')
@@ -74,6 +77,9 @@ class Deadlines(commands.Cog):
             "{} {} {} removed from deadlines :triumph:".format(deadline["department"], deadline["course_num"],
                                                                deadline["name"]))
         print('delete done')
+    @remove_deadline.error
+    async def remove_deadline_error(self, ctx, error):
+        await ctx.send("Error removing deadline")
 
     @commands.command(name='cleardeadlines')
     @has_permissions(administrator=True)
