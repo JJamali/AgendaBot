@@ -84,14 +84,15 @@ class Events(commands.Cog):
     @commands.command(name='listevents')
     async def list_all_events(self, ctx):
         events = self.get_all_events(ctx.message.guild.id)
-        message = []
-        for idx, event in enumerate(events):
-            message.append(f"{idx} - {format_event(event)}")
-
-        if message:
-            await ctx.send('\n'.join(message))
+        embed = discord.Embed(title='Upcoming Events', color=0xdc1e1e)
+        if not events:
+            embed.description = "There are no existing events"
         else:
-            await ctx.send("There are no events")
+            lines = []
+            for idx, event in enumerate(events):
+                lines.append(f'`{idx}.` {format_event(event)}')
+            embed.description = '\n'.join(lines)
+        await ctx.send(embed=embed)
 
     def get_all_events(self, guild_id):
         """Returns all upcoming events"""
