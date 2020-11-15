@@ -45,10 +45,6 @@ class Deadlines(commands.Cog):
         self.announce_channels = []
         self.summarize.start()
 
-    @commands.command()
-    async def hello(self, ctx):
-        await ctx.send('Hello!')
-
     @commands.command(name='new')
     async def new_deadline(self, ctx, text):
         department, course_num, name, due_date = parse_arguments(text)
@@ -62,10 +58,14 @@ class Deadlines(commands.Cog):
 
     @commands.command(name='remove')
     async def remove_deadline(self, ctx, idx: int):
+        if idx < 0:
+            await ctx.send("Your index is out of range, please try again")
+            return
         try:
             deadline = self.get_all_deadlines(ctx.message.guild.id)[idx]
         except IndexError:
-            pass
+            await ctx.send("Your index is out of range, please try again")
+            return
 
         self.delete_deadline(**deadline)
         await ctx.send("{} {} {} removed from deadlines :triumph:".format(deadline["department"], deadline["course_num"], deadline["name"]))
@@ -82,10 +82,17 @@ class Deadlines(commands.Cog):
                             ")", (guild_id, department, course_num, name, due_date))
         self.db.commit()
 
-    @commands.command(name='get')
-    async def get_before(self, ctx, date_str):
-        date = dateutil.parser.parse(date_str)
-        self.get_before_datetime(ctx.message.guild.id, date)
+    def delete_deadline(self, guild_id, department, course_num, name, due_date):
+        self.cursor.execute("DELETE FROM deadlines WHERE "
+                            "guild_id = %s AND department = %s AND course_num = %s AND name = %s AND due_date=%s "
+                            "LIMIT 1",
+                            (guild_id, department, course_num, name, due_date))
+
+        self.db.commit()
+
+    def clear_deadline(self):
+        self.cursor.execute("DELETE FROM deadlines")
+        self.db.commit()
 
     def get_before_datetime(self, guild_id, date):
         self.cursor.execute("SELECT * FROM `deadlines` WHERE "
@@ -93,8 +100,6 @@ class Deadlines(commands.Cog):
                             "ORDER BY `due_date` ASC",
                             (guild_id, date, datetime.datetime.now()))
         result = self.cursor.fetchall()
-        for r in result:
-            print(r)
         return result
 
     @commands.command(name='list')
@@ -116,24 +121,6 @@ class Deadlines(commands.Cog):
                             "ORDER BY `due_date` ASC",
                             (guild_id, datetime.datetime.now()))
         return self.cursor.fetchall()
-
-    def delete_deadline(self, guild_id, department, course_num, name, due_date):
-        self.cursor.execute("DELETE FROM deadlines WHERE "
-                            "guild_id = %s AND department = %s AND course_num = %s AND name = %s AND due_date=%s "
-                            "LIMIT 1",
-                            (guild_id, department, course_num, name, due_date))
-
-        self.db.commit()
-
-    def clear_deadline(self):
-        self.cursor.execute("DELETE FROM deadlines")
-        self.db.commit()
-
-    @commands.command(name='deadlines')
-    async def test(self, ctx):
-        dates = [datetime.datetime(2020, 11, 16), datetime.datetime(2020, 11, 17), datetime.datetime(2020,11,17)]
-        deadlines = [{"department": "dep", "course_num": i, "name": i*i, "due_date": date} for i, date in enumerate(dates)]
-        await self.send_calendar(ctx, deadlines)
 
     async def send_calendar(self, ctx, guild, deadlines):
         message = []
@@ -165,6 +152,7 @@ class Deadlines(commands.Cog):
 
     @tasks.loop(hours=24)
     async def summarize(self):
+        """Print upcoming events each day"""
         self.announce_channels = [discord.utils.get(guild.channels, name='announcements')
                                   for guild in self.bot.guilds]
 
