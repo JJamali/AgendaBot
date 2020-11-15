@@ -7,9 +7,11 @@ from discord.ext.commands import has_permissions
 import dateutil.parser
 import datetime
 
+
 def format_event(event):
-    return f"`{event['name']} {event['description']}`" \
-    f"`{event['start_date'].strftime('%b %b %p')}`"
+    return f"`{event['name']}` {event['description']} | " \
+           f"`{event['start_date'].strftime('%b %d %I:%M %p')}`"
+
 
 def parse_arguments(text):
     name, description, start_date = [arg.strip() for arg in text.split(',')]
@@ -27,7 +29,7 @@ class Events(commands.Cog):
         self.cursor = cursor
 
         self.announce_channels = []
-        #self.summarize.start()
+        # self.summarize.start()
 
     @has_permissions(administrator=True)
     @commands.command(name='newevent')
@@ -37,7 +39,8 @@ class Events(commands.Cog):
         guild_id = ctx.message.guild.id
 
         self.insert_event(guild_id, name, description, start_date)
-        await ctx.send("{} {} added to events :sunglasses:".format(name, start_date))
+        await ctx.send(
+            "{} {} added to events :sunglasses:".format(name, start_date))
 
         print('done')
 
@@ -54,7 +57,9 @@ class Events(commands.Cog):
             return
 
         self.delete_event(**event)
-        await ctx.send("{} {} removed from events :triumph:".format(event["name"], event["start_date"]))
+        await ctx.send(
+            "{} {} removed from events :triumph:".format(event["name"],
+                                                         event["start_date"]))
         print('delete done')
 
     @commands.command(name='clearevents')
@@ -64,9 +69,10 @@ class Events(commands.Cog):
         await ctx.send("Removed all events")
 
     def insert_event(self, guild_id, name, description, start_date):
-        self.cursor.execute("INSERT INTO events (guild_id, name, Description, start_date) VALUES("
-                            "%s, %s, %s, %s"
-                            ")", (guild_id, name, description, start_date))
+        self.cursor.execute(
+            "INSERT INTO events (guild_id, name, Description, start_date) VALUES("
+            "%s, %s, %s, %s"
+            ")", (guild_id, name, description, start_date))
         self.db.commit()
 
     def delete_event(self, guild_id, name, description, start_date):
@@ -78,7 +84,8 @@ class Events(commands.Cog):
         self.db.commit()
 
     def clear_event(self, guild_id):
-        self.cursor.execute("DELETE FROM events WHERE `guild_id` = %s", (guild_id,))
+        self.cursor.execute("DELETE FROM events WHERE `guild_id` = %s",
+                            (guild_id,))
         self.db.commit()
 
     @commands.command(name='listevents')
