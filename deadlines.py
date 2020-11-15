@@ -74,6 +74,13 @@ class Deadlines(commands.Cog):
             print(r)
         return result
 
+    def get_all_deadlines(self, guild_id):
+        self.cursor.execute("SELECT * FROM `deadlines` WHERE"
+                            "`guild_id` = %s"
+                            "ORDER BY `due_date` ASC",
+                            (guild_id,))
+        return self.cursor.fetchall()
+
     def delete_deadline(self, guild_id, department, course_num, name, due_date):
         self.cursor.execute("DELETE FROM deadlines WHERE "
                             "guild_id = %s AND department = %s AND course_num = %s AND name = %s AND due_date=%s",
