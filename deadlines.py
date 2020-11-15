@@ -51,8 +51,11 @@ class Deadlines(commands.Cog):
         self.get_before_datetime(ctx.message.guild.id, date)
 
     def get_before_datetime(self, guild_id, date):
-        self.cursor.execute("SELECT * FROM deadlines WHERE "
-                            "`guild_id` = %s AND `due_date` < %s",
+        self.cursor.execute("SELECT * FROM `deadlines` WHERE "
+                            "`guild_id` = %s AND `due_date` < %s"
+                            "ORDER BY `due_date` ASC",
                             (guild_id, date))
         result = self.cursor.fetchall()
+        for r in result:
+            print(r)
         return result
