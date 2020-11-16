@@ -13,7 +13,7 @@ Agendabot is a discord bot created to help university students better schedule t
 *`$newevent event name, event description, start date` : adds a new event to the events database based on the parameters shown (commas are necessary)\
 *`$removeevents` : deletes a event from the events database through an index \
 *`$clearevents` : clears all events from the events database. Should be used very cautiously. \
-*`$listevents` : list all upcoming with their indices (index is used for deletion) \
+*`$listevents` : list all upcoming with their indices (index is used for deletion)
 
 
 
