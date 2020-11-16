@@ -40,11 +40,6 @@ class CalendarBot(commands.Bot):
 
 bot = CalendarBot(command_prefix='$')
 
-@bot.command()
-async def ping(ctx):
-    await ctx.send("Pong!")
-
-
 
 TOKEN = os.getenv('DISCORD_TOKEN')
 if TOKEN is not None:
