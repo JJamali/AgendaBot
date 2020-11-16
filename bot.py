@@ -3,12 +3,11 @@ import discord
 import MySQLdb
 from discord.ext import commands
 
-from deadlines import Deadlines
-from events import Events
+from agenda.agendacog import AgendaCog
 
 @commands.command()
 async def help(ctx):
-    embed=discord.Embed(color=0x1bd0b2)
+    embed = discord.Embed(color=0x1bd0b2)
     embed.add_field(name="newdeadline", value="adds a deadline with: `$newdeadline [course], [name], [date]`",
                     inline=False)
     embed.add_field(name="removedeadline", value="removes a deadline with: `$removedeadline[index]`", inline=False)
@@ -21,6 +20,7 @@ async def help(ctx):
     embed.add_field(name="listevents", value="lists all events", inline=False)
     await ctx.send(embed=embed)
 
+
 class CalendarBot(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -30,16 +30,22 @@ class CalendarBot(commands.Bot):
                                   database='deadlinedb')
         self.cursor = self.db.cursor(MySQLdb.cursors.DictCursor)
 
-        self.add_cog(Deadlines(self, self.db, self.cursor))
-        self.add_cog(Events(self, self.db, self.cursor))
+        self.add_cog(AgendaCog(self, self.db, self.cursor))
         self.remove_command('help')
         self.add_command(help)
+
     async def on_ready(self):
         print('We have logged in as {0.user}'.format(self))
 
 
-if __name__ == '__main__':
-    client = CalendarBot(command_prefix='$')
-    TOKEN = os.getenv('DISCORD_TOKEN')
-    if TOKEN is not None:
-        client.run(TOKEN)
+bot = CalendarBot(command_prefix='$')
+
+@bot.command()
+async def ping(ctx):
+    await ctx.send("Pong!")
+
+
+
+TOKEN = os.getenv('DISCORD_TOKEN')
+if TOKEN is not None:
+    bot.run(TOKEN)
