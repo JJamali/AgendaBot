@@ -1,11 +1,14 @@
 import re
 import asyncio
+import datetime
+from typing import List
 
 import discord
 from discord.ext import commands, tasks
 from discord.ext.commands import has_permissions
 import dateutil.parser
-import datetime
+
+from agenda.deadline import Deadline
 
 
 def format_deadline(deadline):
@@ -49,15 +52,18 @@ class Deadlines(commands.Cog):
     @commands.command(name='newdeadline')
     async def new_deadline(self, ctx, *, text):
         department, course_num, name, due_date = parse_arguments(text)
-
         guild_id = ctx.message.guild.id
 
-        self.insert_deadline(guild_id, department, course_num, name, due_date)
-        await ctx.send("{} {} {} added to deadlines :sunglasses:".format(department, course_num, name))
+        deadline = Deadline(guild_id, department, course_num, name, due_date)
+
+        self.insert_deadline(deadline)
+        await ctx.send(f"{deadline} added to deadlines :sunglasses:")
 
         print('done')
+
     @new_deadline.error
     async def new_deadline_error(self, ctx, error):
+        print(error)
         await ctx.send("Error creating deadline")
 
     @has_permissions(administrator=True)
@@ -72,13 +78,13 @@ class Deadlines(commands.Cog):
             await ctx.send("Your index is out of range, please try again")
             return
 
-        self.delete_deadline(**deadline)
-        await ctx.send(
-            "{} {} {} removed from deadlines :triumph:".format(deadline["department"], deadline["course_num"],
-                                                               deadline["name"]))
+        self.delete_deadline(deadline)
+        await ctx.send(f"{deadline} removed from deadlines :triumph:")
         print('delete done')
+
     @remove_deadline.error
     async def remove_deadline_error(self, ctx, error):
+        print(error)
         await ctx.send("Error removing deadline")
 
     @commands.command(name='cleardeadlines')
@@ -87,17 +93,17 @@ class Deadlines(commands.Cog):
         self.clear_deadline(ctx.guild.id)
         await ctx.send("Removed All Deadlines")
 
-    def insert_deadline(self, guild_id, department, course_num, name, due_date):
+    def insert_deadline(self, d: Deadline):
         self.cursor.execute("INSERT INTO deadlines VALUES("
                             "%s, %s, %s, %s, %s"
-                            ")", (guild_id, department, course_num, name, due_date))
+                            ")", (d.guild_id, d.department, d.course_num, d.name, d.due_date))
         self.db.commit()
 
-    def delete_deadline(self, guild_id, department, course_num, name, due_date):
+    def delete_deadline(self, d: Deadline):
         self.cursor.execute("DELETE FROM deadlines WHERE "
                             "guild_id = %s AND department = %s AND course_num = %s AND name = %s AND due_date=%s "
                             "LIMIT 1",
-                            (guild_id, department, course_num, name, due_date))
+                            (d.guild_id, d.department, d.course_num, d.name, d.due_date))
 
         self.db.commit()
 
@@ -111,7 +117,16 @@ class Deadlines(commands.Cog):
                             "ORDER BY `due_date` ASC",
                             (guild_id, date, datetime.datetime.now()))
         result = self.cursor.fetchall()
-        return result
+        return Deadline(**result)
+
+    def get_all_deadlines(self, guild_id) -> List[Deadline]:
+        """Returns all upcoming deadlines"""
+        self.cursor.execute("SELECT * FROM `deadlines` WHERE "
+                            "`guild_id` = %s AND `due_date` > %s "
+                            "ORDER BY `due_date` ASC",
+                            (guild_id, datetime.datetime.now()))
+        deadlines = [Deadline(**kwargs) for kwargs in self.cursor.fetchall()]
+        return deadlines
 
     @commands.command(name='listdeadlines')
     async def list_all_deadlines(self, ctx):
@@ -123,30 +138,22 @@ class Deadlines(commands.Cog):
         else:
             lines = []
             for idx, deadline in enumerate(deadlines):
-                lines.append(f"`{idx}.` {format_deadline(deadline)}")
+                lines.append(f"`{idx}.` {deadline.discord_format()}")
             embed.description = '\n'.join(lines)
         await ctx.send(embed=embed)
 
-    def get_all_deadlines(self, guild_id):
-        """Returns all upcoming deadlines"""
-        self.cursor.execute("SELECT * FROM `deadlines` WHERE "
-                            "`guild_id` = %s AND `due_date` > %s "
-                            "ORDER BY `due_date` ASC",
-                            (guild_id, datetime.datetime.now()))
-        return self.cursor.fetchall()
-
-    async def send_calendar(self, ctx, guild, deadlines):
+    async def send_calendar(self, ctx, guild, deadlines: List[Deadline]):
         embed = discord.Embed(title=f':calendar_spiral: {guild}\'s upcoming due dates:', color=0xdc1e1e)
         fields = []
         current_day = None
 
         for idx, deadline in enumerate(deadlines):
-            new_day = deadline["due_date"]
+            new_day = deadline.due_date
             if current_day != new_day:
-                fields.append({"name": get_weekday(deadline["due_date"]), "value": []})
+                fields.append({"name": get_weekday(deadline.due_date), "value": []})
                 current_day = new_day
 
-            desc = format_deadline(deadline)
+            desc = deadline.discord_format()
             fields[-1]["value"].append(desc)
 
         for f in fields:
