@@ -201,7 +201,7 @@ class AgendaCog(commands.Cog):
         for channel in self.announce_channels:
             if channel is not None:
                 guild_id = channel.guild.id
-                deadlines = self.get_all_deadlines(guild_id)
+                deadlines = self.d_manager.get_all_deadlines(guild_id)
                 await self.send_calendar(channel, channel.guild, deadlines)
 
     @summarize.before_loop
