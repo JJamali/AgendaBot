@@ -77,6 +77,7 @@ class AgendaCog(commands.Cog):
     @has_permissions(administrator=True)
     @new.command(name='deadline')
     async def new_deadline(self, ctx, *, text):
+        """Adds a deadline with: `$new deadline [course], [name], [date]`"""
         department, course_num, name, due_date = parse_arguments(text)
         guild_id = ctx.message.guild.id
 
@@ -93,6 +94,7 @@ class AgendaCog(commands.Cog):
     @has_permissions(administrator=True)
     @remove.command(name='deadline')
     async def remove_deadline(self, ctx, idx: int):
+        """Removes a deadline with: `$remove deadline[index]`"""
         if idx < 0:
             raise IndexError
         deadline = self.d_manager.get_all_deadlines(ctx.message.guild.id)[idx]
@@ -107,11 +109,13 @@ class AgendaCog(commands.Cog):
     @has_permissions(administrator=True)
     @clear.command(name='deadlines')
     async def clear_all_deadlines(self, ctx):
+        """Clears all deadlines"""
         self.d_manager.clear_deadline(ctx.guild.id)
         await ctx.send("Removed All Deadlines")
 
     @list.command(name='deadlines')
     async def list_all_deadlines(self, ctx):
+        """Lists all deadlines"""
         deadlines = self.d_manager.get_all_deadlines(ctx.message.guild.id)
         embed = discord.Embed(title='Upcoming Due Dates', color=0xdc1e1e)
         if not deadlines:
@@ -127,6 +131,7 @@ class AgendaCog(commands.Cog):
     @has_permissions(administrator=True)
     @new.command(name='event')
     async def new_event(self, ctx, *, text):
+        """Adds an event with: `$new event [title], [description], [time]`"""
         name, description, start_date = eventmanager.parse_arguments(text)
         guild_id = ctx.message.guild.id
 
@@ -143,6 +148,7 @@ class AgendaCog(commands.Cog):
     @has_permissions(administrator=True)
     @remove.command(name='event')
     async def remove_event(self, ctx, idx: int):
+        """Removes an event with: `$remove event[index]`"""
         if idx < 0:
             raise IndexError()
         event = self.e_manager.get_all_events(ctx.message.guild.id)[idx]
@@ -158,11 +164,13 @@ class AgendaCog(commands.Cog):
     @clear.command(name='events')
     @has_permissions(administrator=True)
     async def clear_all_event(self, ctx):
+        """Clears all events"""
         self.e_manager.clear_event(ctx.guild.id)
         await ctx.send("Removed all events")
 
     @list.command(name='events')
     async def list_all_events(self, ctx):
+        """Lists all events"""
         events = self.e_manager.get_all_events(ctx.message.guild.id)
         embed = discord.Embed(title='Upcoming Events', color=0xdc1e1e)
         if not events:
