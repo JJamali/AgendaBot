@@ -77,7 +77,7 @@ class AgendaCog(commands.Cog):
     @has_permissions(administrator=True)
     @new.command(name='deadline')
     async def new_deadline(self, ctx, *, text):
-        """Adds a deadline with: `$new deadline [course], [name], [date]`"""
+        """Adds a deadline with: `$new deadline [course_code], [deadline_name], [due_date]`"""
         department, course_num, name, due_date = parse_arguments(text)
         guild_id = ctx.message.guild.id
 
@@ -94,7 +94,7 @@ class AgendaCog(commands.Cog):
     @has_permissions(administrator=True)
     @remove.command(name='deadline')
     async def remove_deadline(self, ctx, idx: int):
-        """Removes a deadline with: `$remove deadline[index]`"""
+        """Removes a deadline with: `$remove deadline [index]`"""
         if idx < 0:
             raise IndexError
         deadline = self.d_manager.get_all_deadlines(ctx.message.guild.id)[idx]
@@ -131,7 +131,7 @@ class AgendaCog(commands.Cog):
     @has_permissions(administrator=True)
     @new.command(name='event')
     async def new_event(self, ctx, *, text):
-        """Adds an event with: `$new event [title], [description], [time]`"""
+        """Adds an event with: `$new event [event_name], [description], [start_date]`"""
         name, description, start_date = eventmanager.parse_arguments(text)
         guild_id = ctx.message.guild.id
 
@@ -148,7 +148,7 @@ class AgendaCog(commands.Cog):
     @has_permissions(administrator=True)
     @remove.command(name='event')
     async def remove_event(self, ctx, idx: int):
-        """Removes an event with: `$remove event[index]`"""
+        """Removes an event with: `$remove event [index]`"""
         if idx < 0:
             raise IndexError()
         event = self.e_manager.get_all_events(ctx.message.guild.id)[idx]
